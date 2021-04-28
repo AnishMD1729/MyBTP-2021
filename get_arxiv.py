@@ -14,6 +14,6 @@ def left_titles(tempTitle):
     df = pd.DataFrame(output, columns=cols)
 
     with open('NoamChomsky_left.csv', 'wb') as f:
-    w = csv.writer(f)
-    w.writerows(abstract_dict.items())
-    df.to_csv(r 'NoamChomsky_left.csv', index=False)
+        w = csv.writer(f)
+        w.writerows(abstract_dict.items())
+    df.to_csv(r'NoamChomsky_left.csv', index=False)
