@@ -103,7 +103,7 @@ with open('NoamChomsky.csv', 'wb') as f:
             if call_browser:
                 web_driver.close()
 
-        except FirstPaperDifferentError:
+        except:
             web_driver.close()
 
         finally:
