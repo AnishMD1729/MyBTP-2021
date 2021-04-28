@@ -8,27 +8,22 @@ import numpy as np
 import os
 
 
-def get_topic_words(token_lists, labels, k=None):
-
-    if k is None:
-        k = len(np.unique(labels))
-    topics = ['' for _ in range(k)]
-    for i, c in enumerate(token_lists):
-        topics[labels[i]] += (' ' + ' '.join(c))
-    word_counts = list(map(lambda x: Counter(x.split()).items(), topics))
-    # get sorted word counts
-    word_counts = list(map(lambda x: sorted(
-        x, key=lambda x: x[1], reverse=True), word_counts))
-    # get topics
-    topics = list(
-        map(lambda x: list(map(lambda x: x[0], x[:10])), word_counts))
-
-    return topics
-
-
 def get_coherence(model, token_lists, measure='c_v'):
-    if model.method != 'LDA':
-        topics = get_topic_words(token_lists, model.cluster_model.labels_)
+
+    if model.method == 'LDA':
+        cm = CoherenceModel(model=model.ldamodel, texts=token_lists, corpus=model.corpus, dictionary=model.dictionary,
+                            coherence=measure)
+    else:
+        if k is None:
+            k = len(np.unique(model.cluster_model.labels_))
+        topics = ['' for _ in range(k)]
+        for i, c in enumerate(token_lists):
+            topics[model.cluster_model.labels_[i]] += (' ' + ' '.join(c))
+        word_counts = list(map(lambda x: Counter(x.split()).items(), topics))
+        word_counts = list(map(lambda x: sorted(
+            x, key=lambda x: x[1], reverse=True), word_counts))
+        topics = list(
+            map(lambda x: list(map(lambda x: x[0], x[:10])), word_counts))
         cm = CoherenceModel(topics=topics, texts=token_lists, corpus=model.corpus, dictionary=model.dictionary,
                             coherence=measure)
     return cm.get_coherence()
@@ -36,33 +31,32 @@ def get_coherence(model, token_lists, measure='c_v'):
 
 def get_silhouette(model):
 
+    if model.method == 'LDA':
+        return
     lbs = model.cluster_model.labels_
     vec = model.vec[model.method]
     return silhouette_score(vec, lbs)
 
 
-def plot_proj(embedding, lbs):
+def visualize(model):
 
-    n = len(embedding)
-    counter = Counter(lbs)
-    for i in range(len(np.unique(lbs))):
-        plt.plot(embedding[:, 0][lbs == i], embedding[:, 1][lbs == i], '.', alpha=0.5,
+    if model.method == 'LDA':
+        return
+    reducer = umap.UMAP()
+    vec_umap = reducer.fit_transform(model.vec[model.method])
+    n = len(vec_umap)
+    counter = Counter(model.cluster_model.labels_)
+    for i in range(len(np.unique(model.cluster_model.labels_))):
+        plt.plot(vec_umap[:, 0][model.cluster_model.labels_ == i], vec_umap[:, 1][model.cluster_model.labels_ == i], '.', alpha=0.5,
                  label='cluster {}: {:.2f}%'.format(i, counter[i] / n * 100))
     plt.legend()
 
 
-def visualize(model):
-
-    reducer = umap.UMAP()
-    print('Calculating UMAP projection ...')
-    vec_umap = reducer.fit_transform(model.vec[model.method])
-    print('Calculating UMAP projection. Done!')
-    plot_proj(vec_umap, model.cluster_model.labels_)
-
-
 def get_wordcloud(model, token_lists, topic):
 
-    print('Getting wordcloud for topic {} ...'.format(topic))
+    if model.method == 'LDA':
+        return
+
     lbs = model.cluster_model.labels_
     tokens = ' '.join([' '.join(_)
                        for _ in np.array(token_lists)[lbs == topic]])
@@ -75,6 +69,3 @@ def get_wordcloud(model, token_lists, topic):
     plt.imshow(wordcloud)
     plt.axis("off")
     plt.tight_layout(pad=0)
-
-    plt.savefig(dr + '/Topic' + str(topic) + '_wordcloud')
-    print('Getting wordcloud for topic {}. Done!'.format(topic))
