@@ -45,7 +45,7 @@ def scrap_paper_list_by_title(paper_title_list: list):
 
     for paper_name in tqdm.tqdm(paper_title_list):
         try:
-            paper_dict = self.scrap_paper_by_title(
+            paper_dict = scrap_paper_by_title(
                 paper_name, call_browser=False)
             papers_dict.append(paper_dict)
         except KeyError:
