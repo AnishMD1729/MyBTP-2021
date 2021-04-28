@@ -2,8 +2,6 @@ import os
 import re
 import sys
 import time
-import distance
-import json
 from collections import deque
 import selenium
 from selenium import webdriver
