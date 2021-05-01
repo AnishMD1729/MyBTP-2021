@@ -8,6 +8,9 @@ def helper():
     lines = open('UserAgentStrings.txt').read().splitlines()
     temp = random.choice(lines)
 
+def random_line(fname):
+    lines = open(fname).read().splitlines()
+    return random.choice(lines)
 
 def GS_helper(query=None):
     temp = helper()
@@ -27,6 +30,13 @@ def GS_helper(query=None):
         tempDict['abstract'].append(item.select('.gs_rs')[0].get_text())
 
     '''
+    tempProxy = random_line('list_of_IPs.txt')
+    httpProxy = 'http://' + tempProxy
+    httpsProxy = 'https://' + tempProxy
+    pg = ProxyGenerator()
+    pg.SingleProxy(http=httpProxy, https=httpsProxy)
+    scholarly.use_proxy(pg)
+
 
     search_query = scholarly.search_author(query)
     author = scholarly.fill(next(search_query))
